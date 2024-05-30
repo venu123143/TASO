@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 
 // env, db connection and Response
 import "dotenv/config";
-// import "./database/connection";
+import "./database/connection";
 
 import swagOptions from "./utils/swagger";
 import swaggerjsdoc from "swagger-jsdoc";
@@ -26,9 +26,12 @@ process.on("uncaughtException", (err) => {
 
 const app: Application = express();
 
+
+import postRouter from "./services/postService/postRoute"
+
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: ["http://localhost:8080", "http://localhost:4200",], credentials: true },
+  cors: { origin: ["http://localhost:8080", "http://localhost:3000",], credentials: true },
 });
 app.use(cors(options));
 // app.use(session);
@@ -49,7 +52,7 @@ chatNamespace.on("connection", (socket) => {
 });
 
 // routes
-// app.use("/api/v1/user", userRouter);
+app.use("/api/v1/post", postRouter);
 
 app.use(multerMiddleWare);
 app.use(ErrorHandler);

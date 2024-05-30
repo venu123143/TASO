@@ -20,19 +20,43 @@ const createIfNoExist = (path: string) => {
     });
 };
 
+export const multerMiddleWare = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    if (err instanceof multer.MulterError) {
+        // Multer error occurred
+        console.log(err);
+
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            throw new Error('File/Files exceed 12 MB limit. Please reduce file size and retry.')
+        }
+        if (err.code === 'LIMIT_FILE_COUNT') {
+            throw new Error('The maximum number of files allowed is 3.')
+        }
+        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+            throw new Error('The maximum number of files allowed is 3.')
+        }
+        // Handle other Multer errors
+        RESPONSE.FailureResponse(res, 400, { message: err.message })
+        return
+    }
+    next()
+}
+const uploadDir = path.join(__dirname, '../../src/public/images');
+
 const multerStorage = multer.diskStorage({
     destination: async function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '../../src/public/images');
         await createIfNoExist(uploadDir)
         cb(null, uploadDir)
     },
     filename: function (req, file, cb) {
-        const randomNum = Math.round(Math.random() * 1E9);
-        const uniqueSufix = Date.now() + randomNum
-        const fileExtension = path.extname(file.originalname);
-        const fileNameWithoutExtension = path.basename(file.originalname, fileExtension);
-        const fileName = fileNameWithoutExtension.replace(/ /g, '_');
-        cb(null, fileName + "_" + uniqueSufix + fileExtension)
+        const { chunkIndex, originalName } = req.body;
+        console.log(originalName, chunkIndex);
+
+        const chunkFilename = `${originalName}.part-${chunkIndex}`;
+        cb(null, chunkFilename);
+        // const uniqueSufix = Date.now() + Math.round(Math.random() * 1E9);
+        // const fileExtension = path.extname(file.originalname);
+        // const basename = path.basename(file.originalname, fileExtension).replace(/ /g, '_')
+        // cb(null, basename + "_" + uniqueSufix + fileExtension)
     }
 })
 
@@ -46,27 +70,7 @@ const multerStorage = multer.diskStorage({
 //     }
 // };
 
-export const multerMiddleWare = (err: Error, req: Request, res: Response, next: NextFunction) => {
-    if (err instanceof multer.MulterError) {
-        // Multer error occurred
-        if (err.code === 'LIMIT_FILE_SIZE') {
-            // RESPONSE.FailureResponse(res, 400, { message: })
-            throw new Error('File/Files exceed 12 MB limit. Please reduce file size and retry.')
-        }
-        if (err.code === 'LIMIT_FILE_COUNT') {
-            // RESPONSE.FailureResponse(res, 400, { message: })
-            throw new Error('The maximum number of files allowed is 10.')
-        }
-        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-            // RESPONSE.FailureResponse(res, 400, { message: })
-            throw new Error('The maximum number of files allowed is 10.')
-        }
-        // Handle other Multer errors
-        RESPONSE.FailureResponse(res, 400, { message: err.message })
-        return
-    }
-    next()
-}
+
 export const uploadImage = multer({
     storage: multerStorage,
     // fileFilter: multerFilter,
