@@ -25,7 +25,7 @@ const mergeChunks = async (totalChunks: number, originalName: string, finalPath:
 };
 
 const uploadPost = async (req: Request, res: Response) => {
-    const { chunkIndex, totalChunks, originalName, fileType } = req.body;
+    const { chunkIndex, totalChunks, originalName } = req.body;
     const chunkPath = path.join('uploads', `${originalName}.part-${chunkIndex}`);
     const finalPath = path.join('uploads', originalName);
     try {
