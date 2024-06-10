@@ -2,8 +2,8 @@ import { Model, Sequelize } from 'sequelize';
 
 interface UserAttributes {
     id?: number;
-    firstname?: string;
-    lastname?: string;
+    fullName?: string;
+    accountName?: string;
     userType?: string;
     profilePicture?: string;
     coverPhoto?: string;
@@ -11,8 +11,8 @@ interface UserAttributes {
     phoneNumber?: string;
     theme?: string;
     password?: string;
-    timeZone?: string
-    lastLogin?: number
+    timeZone?: string;
+    lastLogin?: number;
     createdAt?: Date
 
 }
@@ -25,13 +25,13 @@ const UserModel = (sequelize: Sequelize, DataTypes: any) => {
             primaryKey: true,
             autoIncrement: true,
         },
-        firstname: {
+        fullName: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: false
         },
-        lastname: {
+        accountName: {
             type: DataTypes.STRING,
-            allowNull: true
+            allowNull: false
         },
         userType: {
             type: DataTypes.STRING,
