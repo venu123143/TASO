@@ -2,16 +2,14 @@ import { Model, Sequelize } from 'sequelize';
 
 interface UserAttributes {
     id?: number;
-    profilePicture?: string;
-    coverPhoto?: string;
     firstname?: string;
     lastname?: string;
-    countryCode: string;
-    theme?: string;
-    accentColor?: string;
     userType?: string;
+    profilePicture?: string;
+    coverPhoto?: string;
+    countryCode: string;
     phoneNumber?: string;
-    resetToken?: string | null;
+    theme?: string;
     password?: string;
     timeZone?: string
     lastLogin?: number
@@ -31,13 +29,13 @@ const UserModel = (sequelize: Sequelize, DataTypes: any) => {
             type: DataTypes.STRING,
             allowNull: true
         },
-        userType: {
-            type: DataTypes.STRING,
-            defaultValue: 'user'
-        },
         lastname: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        userType: {
+            type: DataTypes.STRING,
+            defaultValue: 'user'
         },
         profilePicture: {
             type: DataTypes.STRING,
@@ -59,14 +57,6 @@ const UserModel = (sequelize: Sequelize, DataTypes: any) => {
         theme: {
             type: DataTypes.STRING,
             defaultValue: 'system'
-        },
-        accentColor: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
-        resetToken: {
-            type: DataTypes.STRING,
-            allowNull: true
         },
         password: {
             type: DataTypes.STRING,
