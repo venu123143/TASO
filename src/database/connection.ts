@@ -1,5 +1,8 @@
 
-import { Sequelize } from "sequelize"
+import { DataTypes, ModelCtor, Sequelize } from "sequelize"
+
+import UserModel, { UserInstance } from "../services/userService/models/userModel"
+
 // DataTypes, ModelCtor,
 const connection = new Sequelize(
     process.env.DB_DATABASE as string,
@@ -23,13 +26,17 @@ connection.authenticate()
 interface Connection {
     Sequelize: typeof Sequelize;
     connection: Sequelize;
+    User: ModelCtor<UserInstance>;
+
 }
 
 const db: Connection = {
     Sequelize,
     connection: connection,
+    User: UserModel(connection, DataTypes),
 }
 // emails relations
+
 
 // {alter:true}
 // // { force: false }
