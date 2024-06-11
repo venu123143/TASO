@@ -11,8 +11,8 @@ interface FailureData {
 }
 
 const RESPONSE = {
-    SuccessResponse: (res: Response, data: SuccessData) => {
-        return res.status(200).json(data);
+    SuccessResponse: (res: Response, status: 200 | 201, data: SuccessData) => {
+        return res.status(status).json(data);
     },
     FailureResponse: (res: Response, status: number, data: FailureData) => {
         return res.status(status).json({ ...data, status: status })

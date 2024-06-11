@@ -1,37 +1,41 @@
 import { Request, Response } from "express";
-
 import { IUser, UserInstance } from "../models/userModel";
-// import bcrypt from 'bcrypt';
-
+import userValidations from "../validations/userValidations";
+import { UserDatabase } from "../dbCalls/userDbCalls";
+import RESPONSE from "../../../utils/Response";
+import bcrypt from 'bcrypt';
 
 const signUp = async (req: Request, res: Response) => {
     try {
-        // const { error, value } = await userSchema.validate(req.body)
-        // if (error) {
-        //     return res.status(400).json({ message: error });
-        // }
-        // const { firstname, lastname, countryCode, phoneNumber, password, email, username } = value;
-        // // Check if the phone number already exists
-        // const existingUser = await UserDatabase.findUserByAttributes({ phoneNumber, username, email });
-        // if (existingUser) {
-        //     if (existingUser.phoneNumber === phoneNumber) {
-        //         return res.status(400).json({ message: 'Phone number already exists' });
-        //     }
-        //     if (existingUser.username === username) {
-        //         return res.status(400).json({ message: 'Username already exists' });
-        //     }
-        //     if (existingUser.email === email) {
-        //         return res.status(400).json({ message: 'Email already exists' });
-        //     }
-        // }
-        // // Hash the password
-        // const hashedPassword = await bcrypt.hash(password, 10);
+        const { error, value } = userValidations.RegisterValidation.validate(req.body)
+        if (error) {
+            const errorMessage = error?.message?.replace(/["\\]/g, '');
+            RESPONSE.FailureResponse(res, 401, { message: errorMessage });
+            return;
+        }
+        const { accountName, phoneNumber } = value;
+        let { password } = value;
 
-        // // Create a new user
-        // const newUser = await UserDatabase.createUser(firstname as string, lastname as string, countryCode as string, phoneNumber as string, hashedPassword as string, email as string, username as string)
-        // const token = await jwtToken(newUser)
+        const existingUser = await UserDatabase.findUserExists(accountName, phoneNumber);
+        if (existingUser) {
+            if (existingUser.phoneNumber === phoneNumber) {
+                RESPONSE.FailureResponse(res, 409, { message: 'Phone number already exists' });
+                return
+            }
+            if (existingUser.accountName === accountName) {
+                RESPONSE.FailureResponse(res, 409, { message: 'Account name already taken' });
+                return;
+            }
+        }
+        // Hash the password
+        const saltRounds = 10
+        password = await bcrypt.hash(password, saltRounds);
 
-        // return res.status(201).json({ message: 'User created successfully', user: newUser, token: token });
+        // create user
+        await UserDatabase.createUser(value)
+
+        RESPONSE.SuccessResponse(res, 201, { message: 'User created successfully' });
+
     } catch (error) {
         console.error('Error creating user:', error);
         return res.status(500).json({ message: 'Internal server error' });

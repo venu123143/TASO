@@ -2,15 +2,15 @@ import { Model, Sequelize } from 'sequelize';
 
 export interface IUser {
     id?: number;
-    fullName?: string;
-    accountName?: string;
+    fullName: string;
+    accountName: string;
     userType?: string;
     profilePicture?: string;
     coverPhoto?: string;
-    countryCode: string;
-    phoneNumber?: string;
+    countryCode?: string;
+    phoneNumber: string;
     theme?: string;
-    password?: string;
+    password: string;
     timeZone?: string;
     lastLogin?: number;
     createdAt?: Date

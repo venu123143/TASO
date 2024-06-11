@@ -28,6 +28,7 @@ const app: Application = express();
 
 
 import postRouter from "./services/postService/postRoute"
+import userRouter from "./services/userService/routes/userRoutes"
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -41,7 +42,7 @@ app.use(cookieParser());
 app.use(express.static("public/images"));
 
 app.get("/", async (req, res) => {
-  RESPONSE.SuccessResponse(res, { message: "Server started sucessfully" });
+  RESPONSE.SuccessResponse(res, 200, { message: "Server started sucessfully" });
 });
 const chatNamespace = io.of("/chat");
 // const notificationNamespace = io.of("/notification")
@@ -52,6 +53,7 @@ chatNamespace.on("connection", (socket) => {
 });
 
 // routes
+app.use("/api/v1/user", userRouter);
 app.use("/api/v1/post", postRouter);
 
 app.use(multerMiddleWare);
