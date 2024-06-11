@@ -1,6 +1,6 @@
 import { Model, Sequelize } from 'sequelize';
 
-interface UserAttributes {
+export interface IUser {
     id?: number;
     fullName?: string;
     accountName?: string;
@@ -16,7 +16,7 @@ interface UserAttributes {
     createdAt?: Date
 
 }
-export interface UserInstance extends Model<UserAttributes>, UserAttributes { }
+export interface UserInstance extends Model<IUser>, IUser { }
 
 const UserModel = (sequelize: Sequelize, DataTypes: any) => {
     const User = sequelize.define<UserInstance>('users', {
