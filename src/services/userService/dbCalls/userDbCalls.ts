@@ -26,7 +26,13 @@ async function createUser(userData: UserData) {
     return user
 }
 
+async function findUserByPhone(phoneNumber: string) {
+    const existingUser = await db.User.findOne({ where: { phoneNumber } });
+    return existingUser
+}
+
 export const UserDatabase = {
     findUserExists,
-    createUser
+    createUser,
+    findUserByPhone
 }

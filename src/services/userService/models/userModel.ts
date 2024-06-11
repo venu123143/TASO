@@ -14,6 +14,7 @@ export interface IUser {
     timeZone?: string;
     lastLogin?: number;
     createdAt?: Date
+    updatedAt?: Date
 
 }
 export interface UserInstance extends Model<IUser>, IUser { }
