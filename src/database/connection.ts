@@ -1,9 +1,6 @@
+import { Sequelize } from 'sequelize';
+import UserModel from '../services/userService/models/userModel'; // Adjust the import path as necessary
 
-import { DataTypes, ModelCtor, Sequelize } from "sequelize"
-
-import UserModel, { UserInstance } from "../services/userService/models/userModel"
-
-// DataTypes, ModelCtor,
 const connection = new Sequelize(
     process.env.DB_DATABASE as string,
     process.env.DB_USERNAME as string,
@@ -11,7 +8,7 @@ const connection = new Sequelize(
     {
         host: process.env.DB_HOST as string,
         dialect: 'postgres',
-        logging: false
+        logging: false,
     }
 );
 
@@ -23,24 +20,15 @@ connection.authenticate()
         console.error('Unable to connect to the database: ', error);
     });
 
-interface Connection {
-    Sequelize: typeof Sequelize;
-    connection: Sequelize;
-    User: ModelCtor<UserInstance>;
 
-}
-
-const db: Connection = {
+const db = {
     Sequelize,
-    connection: connection,
-    User: UserModel(connection, DataTypes),
-}
-// emails relations
+    connection,
+    User: UserModel(connection),
+};
 
-
-// {alter:true}
-// // { force: false }
-// connection.sync({ alter: true, }).then(() => console.log('Database tables synced.'))
+// connection.sync({ alter: true })
+//     .then(() => console.log('Database tables synced.'))
 //     .catch((error: unknown) => console.error('Error syncing database:', error));
 
 export default db;
