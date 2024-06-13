@@ -33,8 +33,8 @@ const signUp = async (req: Request, res: Response) => {
 
         // create user
         const user = await UserDatabase.createUser(value)
-        const token = await jwtToken(user) as { token: string }
-        res.setHeader('token', token.token);
+        const token = await jwtToken(user) as string
+        res.setHeader('token', token);
         RESPONSE.SuccessResponse(res, 201, { message: 'User created successfully', user: user });
 
     } catch (error) {
@@ -58,8 +58,8 @@ const login = async (req: Request, res: Response) => {
         if (!passwordMatch) {
             return res.status(400).json({ message: 'Invalid password' });
         }
-        const token = await jwtToken(existingUser) as { token: string }
-        res.setHeader('token', token.token);
+        const token = await jwtToken(existingUser)
+        res.setHeader('token', token);
         RESPONSE.SuccessResponse(res, 201, { message: 'Login successful', user: existingUser });
     } catch (error: any) {
         console.error('Error logging in:', error);

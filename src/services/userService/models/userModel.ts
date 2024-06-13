@@ -13,7 +13,11 @@ export interface IUser {
     password: string;
     timeZone?: string | null;
     lastLogin?: number | null;
-    tags: string[];
+    tags?: string[];
+    about: string;
+    followersCount: number;
+    followingCount: number;
+    postsCount: number;
 }
 
 // These attributes will be optional when calling UserModel.create()
@@ -34,7 +38,10 @@ class User extends Model<IUser, UserModel> implements IUser {
     public timeZone!: string | null;
     public lastLogin!: number | null;
     public tags!: string[];
-
+    public about!: string;
+    public followersCount!: number;
+    public followingCount!: number;
+    public postsCount!: number;
     // timestamps!
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
@@ -55,6 +62,10 @@ const UserModel = (sequelize: Sequelize): typeof User => {
             type: DataTypes.STRING,
             allowNull: false,
         },
+        about: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         userType: {
             type: DataTypes.STRING,
             defaultValue: 'user',
@@ -62,7 +73,7 @@ const UserModel = (sequelize: Sequelize): typeof User => {
         profilePicture: {
             type: DataTypes.STRING,
             allowNull: true,
-        },
+        }, 
         coverPhoto: {
             type: DataTypes.STRING,
             allowNull: true,
@@ -95,8 +106,23 @@ const UserModel = (sequelize: Sequelize): typeof User => {
         tags: {
             type: DataTypes.ARRAY(DataTypes.STRING),
             allowNull: false,
-            defaultValue: [], // Default to an empty array
+            defaultValue: [],
         },
+        followersCount: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
+        followingCount: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
+        postsCount: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        }
     }, {
         sequelize,
         tableName: 'users',

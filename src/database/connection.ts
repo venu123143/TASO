@@ -20,12 +20,12 @@ connection.authenticate()
         console.error('Unable to connect to the database: ', error);
     });
 
-const User = UserModel(connection);
+// const User = 
 
 const db = {
     Sequelize,
     connection,
-    User,
+    User: UserModel(connection),
 };
 
 // connection.sync({ alter: true })
