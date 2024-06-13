@@ -21,7 +21,7 @@ const ses = session({
         maxAge: 3600 * 1000
     }
 });
-
+// 10 * 60 * 1000 // 10 minutes
 export async function getSession(sessionId: string): Promise<any> {
     return new Promise((resolve, reject) => {
         store.get(sessionId, (err, ses) => {
