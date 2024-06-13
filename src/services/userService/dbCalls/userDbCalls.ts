@@ -21,7 +21,7 @@ async function createUser(userData: UserData) {
         fullName: userData.fullName,
         phoneNumber: userData.phoneNumber,
         password: userData.password,
-        accountName: userData.accountName
+        accountName: userData.accountName,
     })
     return user
 }

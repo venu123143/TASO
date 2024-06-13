@@ -14,15 +14,16 @@ export interface IUser {
     timeZone?: string | null;
     lastLogin?: number | null;
     tags?: string[];
-    about: string;
-    followersCount: number;
-    followingCount: number;
-    postsCount: number;
+    about?: string;
+    followersCount?: number;
+    followingCount?: number;
+    postsCount?: number;
 }
 
 // These attributes will be optional when calling UserModel.create()
 export interface UserModel extends Optional<IUser, 'id' | 'userType' | 'profilePicture' |
-    'coverPhoto' | 'countryCode' | 'theme' | 'timeZone' | 'lastLogin'> { }
+    'coverPhoto' | 'countryCode' | 'theme' | 'timeZone' | 'lastLogin' | 'about' | 'followingCount' |
+    'followingCount' | 'postsCount' | 'about'> { }
 
 class User extends Model<IUser, UserModel> implements IUser {
     public id!: number;
@@ -73,7 +74,7 @@ const UserModel = (sequelize: Sequelize): typeof User => {
         profilePicture: {
             type: DataTypes.STRING,
             allowNull: true,
-        }, 
+        },
         coverPhoto: {
             type: DataTypes.STRING,
             allowNull: true,
