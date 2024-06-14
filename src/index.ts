@@ -10,13 +10,15 @@ import swaggerui from "swagger-ui-express";
 import "dotenv/config";
 import "./database/connection";
 
+import postRouter from "./services/postService/postRoute"
+import userRouter from "./services/userService/routes/userRoutes"
 import swagOptions from "./utils/swagger";
 import RESPONSE from "./utils/Response";
-import { options } from "./utils/Cors";
 import ErrorHandler from "./utils/errors";
 import { multerMiddleWare } from "./middleware/Multer";
+import { options } from "./utils/Cors";
 
-// import session from "./utils/Session";
+import session from "./utils/Session";
 
 // Handle uncaught Exception
 process.on("uncaughtException", (err) => {
@@ -27,19 +29,17 @@ process.on("uncaughtException", (err) => {
 const app: Application = express();
 
 
-import postRouter from "./services/postService/postRoute"
-import userRouter from "./services/userService/routes/userRoutes"
-
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: ["http://localhost:3000", "http://localhost:8000",], credentials: true },
 });
 app.use(cors(options));
-// app.use(session);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static("public/images"));
+app.use(session);
+
 
 app.get("/", async (req, res) => {
   RESPONSE.SuccessResponse(res, 200, { message: "Server started sucessfully" });

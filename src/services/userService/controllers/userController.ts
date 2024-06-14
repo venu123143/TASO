@@ -56,7 +56,6 @@ const signUp = async (req: Request, res: Response) => {
         return
 
     } catch (error: any) {
-        console.error('Error creating user:', error);
         RESPONSE.FailureResponse(res, 500, { message: 'Internal server error', });
         return
     }
@@ -79,22 +78,26 @@ const verifyOtp = async (req: Request, res: Response) => {
         const otpValidityDuration = 10 * 60 * 1000;
         const timeDifference = currentTime - session?.userDetails?.otpCreatedAt
         const isValidOTP = parseInt(otp) == session?.userDetails?.userOtp && timeDifference <= otpValidityDuration;
-
         if (!isValidOTP) {
             RESPONSE.FailureResponse(res, 401, { message: "Invalid or expired OTP." });
             return;
         }
+        const userData = {
+            accountName: session?.userDetails?.accountName,
+            phoneNumber: session?.userDetails?.phoneNumber,
+            password: session?.userDetails?.password,
+            fullName: session?.userDetails?.fullName,
+            countryCode: session?.userDetails?.countryCode
+        }
         // create user
-        const user = await UserDatabase.createUser(value)
-        console.log(user);
+        const user = await UserDatabase.createUser(userData)
 
         const token = await jwtToken(user) as string
         res.setHeader('token', token);
         RESPONSE.SuccessResponse(res, 201, { message: 'User created successfully', user: user });
 
     } catch (error: any) {
-        console.error('Error creating user:', error);
-        RESPONSE.FailureResponse(res, 500, { message: 'Internal server error', });
+        RESPONSE.FailureResponse(res, 500, { message: 'Internal server error', error: error?.message });
         return
     }
 }

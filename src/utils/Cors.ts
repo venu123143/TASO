@@ -9,5 +9,5 @@ export const options: CorsOptions = {
     ],
     credentials: true,
     exposedHeaders: ["sessionid", "token",],
-    allowedHeaders: ["sessionid", "Content-Type", "Authorization", "token"],
+    // allowedHeaders: ["sessionid", "Content-Type", "Authorization", "token"],
 };

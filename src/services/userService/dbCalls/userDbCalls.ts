@@ -5,6 +5,7 @@ interface UserData {
     phoneNumber: string;
     password: string;
     fullName: string;
+    countryCode: string;
 }
 
 async function findUserExists(userName: string, phoneNumber: string) {
@@ -22,6 +23,7 @@ async function createUser(userData: UserData) {
         phoneNumber: userData.phoneNumber,
         password: userData.password,
         accountName: userData.accountName,
+        countryCode: userData.countryCode
     })
     return user
 }
