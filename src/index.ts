@@ -3,14 +3,14 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import swaggerjsdoc from "swagger-jsdoc";
+import swaggerui from "swagger-ui-express";
 
 // env, db connection and Response
 import "dotenv/config";
 import "./database/connection";
 
 import swagOptions from "./utils/swagger";
-import swaggerjsdoc from "swagger-jsdoc";
-import swaggerui from "swagger-ui-express";
 import RESPONSE from "./utils/Response";
 import { options } from "./utils/Cors";
 import ErrorHandler from "./utils/errors";
@@ -32,7 +32,7 @@ import userRouter from "./services/userService/routes/userRoutes"
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: ["http://localhost:8080", "http://localhost:3000",], credentials: true },
+  cors: { origin: ["http://localhost:3000", "http://localhost:8000",], credentials: true },
 });
 app.use(cors(options));
 // app.use(session);

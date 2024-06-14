@@ -3,6 +3,7 @@ import Joi from "joi"
 const RegisterValidation = Joi.object({
     fullName: Joi.string().min(3).max(30).required(),
     accountName: Joi.string().min(3).max(30).required(),
+    countryCode: Joi.string().required(),
     phoneNumber: Joi.string().pattern(/^[0-9]+$/).min(10).max(15).required(),
     password: Joi.string()
         .min(8)
@@ -14,7 +15,16 @@ const LoginValidation = Joi.object({
 
 })
 
+const VerifyOtpValidation = Joi.object({
+    otp: Joi.string().min(6).max(6).required().messages({
+        "string.min": "OTP must be 6 digits long",
+        "string.max": "OTP must be 6 digits long",
+        "any.required": "OTP is required"
+    })
+})
+
 export default {
     RegisterValidation,
     LoginValidation,
+    VerifyOtpValidation
 }

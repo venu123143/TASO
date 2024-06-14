@@ -5,16 +5,29 @@ import { UserDatabase } from "../dbCalls/userDbCalls";
 import RESPONSE from "../../../utils/Response";
 import bcrypt from 'bcrypt';
 import jwtToken from "../../../utils/jwtToken"
+import { getSession } from "../../../utils/Session";
+import { MemoryStore, SessionData, Session } from "express-session";
+import { IUser } from "../models/userModel";
+interface UserDetails extends IUser {
+    otpCreatedAt: number;
+    userOtp: number;
+}
+declare module 'express-serve-static-core' {
+    interface Request {
+        session: SessionData & Session & CookieOptions & MemoryStore & { userDetails?: UserDetails };
+    }
+
+}
 
 const signUp = async (req: Request, res: Response) => {
     try {
-        const { error, value } = userValidations.RegisterValidation.validate(req.body)
+        const { error, value } = await userValidations.RegisterValidation.validate(req.body)
         if (error) {
             const errorMessage = error?.message?.replace(/["\\]/g, '');
             RESPONSE.FailureResponse(res, 401, { message: errorMessage });
             return;
         }
-        const { accountName, phoneNumber } = value;
+        const { accountName, phoneNumber, countryCode, fullName } = value;
 
         const existingUser = await UserDatabase.findUserExists(accountName, phoneNumber);
         if (existingUser) {
@@ -31,18 +44,60 @@ const signUp = async (req: Request, res: Response) => {
         const saltRounds = 10
         value.password = await bcrypt.hash(value.password, saltRounds);
 
+        const otpCreatedAt = new Date().getTime();
+        const userOtp = Math.floor(100000 + Math.random() * 900000);
+        req.session.userDetails = { accountName, fullName, phoneNumber, countryCode, password: value.password, userOtp, otpCreatedAt }
+        res.setHeader('sessionid', req.sessionID);
+
+        RESPONSE.SuccessResponse(res, 201, {
+            message: `Hi! ${fullName}, please verify the OTP.`,
+            otp: userOtp
+        });
+        return
+
+    } catch (error: any) {
+        console.error('Error creating user:', error);
+        RESPONSE.FailureResponse(res, 500, { message: 'Internal server error', });
+        return
+    }
+};
+const verifyOtp = async (req: Request, res: Response) => {
+    try {
+        const { error, value } = await userValidations.VerifyOtpValidation.validate(req.body);
+        if (error) {
+            const errorMessage = error?.message?.replace(/["\\]/g, '');
+            RESPONSE.FailureResponse(res, 401, { message: errorMessage });
+            return;
+        }
+        const session = await getSession(req.headers.sessionid as string);
+        if (!session && !session?.userDetails) {
+            RESPONSE.FailureResponse(res, 401, { message: 'Session expired please try again.' });
+            return;
+        }
+        const { otp } = value
+        const currentTime = new Date().getTime();
+        const otpValidityDuration = 10 * 60 * 1000;
+        const timeDifference = currentTime - session?.userDetails?.otpCreatedAt
+        const isValidOTP = parseInt(otp) == session?.userDetails?.userOtp && timeDifference <= otpValidityDuration;
+
+        if (!isValidOTP) {
+            RESPONSE.FailureResponse(res, 401, { message: "Invalid or expired OTP." });
+            return;
+        }
         // create user
         const user = await UserDatabase.createUser(value)
+        console.log(user);
+
         const token = await jwtToken(user) as string
         res.setHeader('token', token);
         RESPONSE.SuccessResponse(res, 201, { message: 'User created successfully', user: user });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating user:', error);
-        return res.status(500).json({ message: 'Internal server error' });
+        RESPONSE.FailureResponse(res, 500, { message: 'Internal server error', });
+        return
     }
-};
-
+}
 const login = async (req: Request, res: Response) => {
     const { phoneNumber, password } = req.body;
 
@@ -73,6 +128,7 @@ const login = async (req: Request, res: Response) => {
 
 export default {
     signUp,
+    verifyOtp,
     login
 }
 
