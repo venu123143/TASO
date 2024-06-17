@@ -24,8 +24,14 @@ const VerifyOtpValidation = Joi.object({
     })
 })
 
+const ResetPassValidation = Joi.object({
+    password: Joi.string().trim().min(8)
+        .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,}$'))
+        .required()
+})
 export default {
     RegisterValidation,
     LoginValidation,
-    VerifyOtpValidation
+    VerifyOtpValidation,
+    ResetPassValidation
 }

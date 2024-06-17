@@ -32,9 +32,13 @@ async function findUserByPhone(phoneNumber: string) {
     const existingUser = await db.User.findOne({ where: { phoneNumber } });
     return existingUser
 }
-
+async function updateUserPassword(phoneNumber: string, password: string) {
+    const result = await db.User.update({ password }, { where: { phoneNumber } });
+    return result
+}
 export const UserDatabase = {
     findUserExists,
     createUser,
-    findUserByPhone
+    findUserByPhone,
+    updateUserPassword
 }

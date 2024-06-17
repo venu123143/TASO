@@ -19,6 +19,10 @@
  *                 type: string
  *                 description: The user's account name
  *                 example: johndoe
+ *               countryCode:
+ *                 type: string
+ *                 description: The user's country code
+ *                 example: +91
  *               phoneNumber:
  *                 type: string
  *                 description: The user's phone number

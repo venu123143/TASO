@@ -4,12 +4,14 @@ import { UserDatabase } from "../dbCalls/userDbCalls";
 import RESPONSE from "../../../utils/Response";
 import bcrypt from 'bcrypt';
 import jwtToken from "../../../utils/jwtToken"
-import { getSession } from "../../../utils/Session";
+import { getSession, setSession } from "../../../utils/Session";
 import { MemoryStore, SessionData, Session } from "express-session";
 import { IUser } from "../models/userModel";
+import crypto from "crypto"
 interface UserDetails extends IUser {
     otpCreatedAt: number;
     userOtp: number;
+    resetToken?: string;
 }
 declare module 'express-serve-static-core' {
     interface Request {
@@ -81,19 +83,27 @@ const verifyOtp = async (req: Request, res: Response) => {
             RESPONSE.FailureResponse(res, 401, { message: "Invalid or expired OTP." });
             return;
         }
-        const userData = {
-            accountName: session?.userDetails?.accountName,
-            phoneNumber: session?.userDetails?.phoneNumber,
-            password: session?.userDetails?.password,
-            fullName: session?.userDetails?.fullName,
-            countryCode: session?.userDetails?.countryCode
-        }
-        // create user
-        const user = await UserDatabase.createUser(userData)
+        if (session?.userDetails?.accountName && session?.userDetails?.fullName) {
+            const userData = {
+                accountName: session?.userDetails?.accountName,
+                phoneNumber: session?.userDetails?.phoneNumber,
+                password: session?.userDetails?.password,
+                fullName: session?.userDetails?.fullName,
+                countryCode: session?.userDetails?.countryCode
+            }
+            // create user
+            const user = await UserDatabase.createUser(userData)
 
-        const token = await jwtToken(user) as string
-        res.setHeader('token', token);
-        RESPONSE.SuccessResponse(res, 201, { message: 'User created successfully', user: user });
+            const token = await jwtToken(user) as string
+            res.setHeader('token', token);
+            RESPONSE.SuccessResponse(res, 201, { message: 'User created successfully', user: user });
+        } else {
+            const token = crypto.randomBytes(32).toString('hex');
+            const data = { ...session, userDetails: { ...session.userDetails, resetToken: token } }
+            await setSession(req.headers.sessionid as string, data);
+            res.setHeader('resettoken', token);
+            RESPONSE.SuccessResponse(res, 200, { message: 'User otp verified successfully', });
+        }
 
     } catch (error: any) {
         RESPONSE.FailureResponse(res, 500, { message: 'Internal server error', error: error?.message });
@@ -112,7 +122,8 @@ const login = async (req: Request, res: Response) => {
         // Check if the user exists
         const existingUser = await UserDatabase.findUserByPhone(phoneNumber)
         if (!existingUser) {
-            return res.status(400).json({ message: 'User not found' });
+            RESPONSE.FailureResponse(res, 400, { message: 'User not found' });
+            return
         }
 
         // Check if the password matches
@@ -132,12 +143,54 @@ const login = async (req: Request, res: Response) => {
 };
 
 
+const forgotPassword = async (req: Request, res: Response) => {
+    const { phoneNumber } = req.body;
+    const user = await UserDatabase.findUserByPhone(phoneNumber)
+    if (!user) {
+        RESPONSE.FailureResponse(res, 500, { message: 'User not found' });
+        return
+    }
+    const otpCreatedAt = new Date().getTime();
+    const userOtp = Math.floor(100000 + Math.random() * 900000);
+    req.session.userDetails = { phoneNumber, userOtp, otpCreatedAt } as any
+    res.setHeader('sessionid', req.sessionID);
+    RESPONSE.SuccessResponse(res, 201, {
+        message: `Hi! ${user.fullName}, please verify the OTP.`,
+        otp: userOtp
+    });
+    return
+}
 
+const resetPassword = async (req: Request, res: Response) => {
+
+    const { error, value } = userValidations.ResetPassValidation.validate(req.body)
+    if (error) {
+        const errorMessage = error?.message?.replace(/["\\]/g, '');
+        RESPONSE.FailureResponse(res, 401, { message: errorMessage });
+        return;
+    }
+    const session = await getSession(req.headers.sessionid as string);
+    if (!session && !session?.userDetails) {
+        RESPONSE.FailureResponse(res, 401, { message: 'Session expired, please try again.' });
+        return;
+    }
+    if (req.session.userDetails?.resetToken !== req.params.token) {
+        RESPONSE.FailureResponse(res, 401, { message: 'Invalid or expired token.' });
+        return;
+    }
+    const saltRounds = 10
+    value.password = await bcrypt.hash(value.password, saltRounds);
+    await UserDatabase.updateUserPassword(session?.userDetails?.phoneNumber as string, value.password)
+    RESPONSE.SuccessResponse(res, 201, { message: 'Password reset successful.' });
+    return
+}
 
 
 export default {
     signUp,
     verifyOtp,
-    login
+    login,
+    forgotPassword,
+    resetPassword
 }
 

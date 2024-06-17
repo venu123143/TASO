@@ -8,6 +8,6 @@ export const options: CorsOptions = {
         "http://localhost:3000",
     ],
     credentials: true,
-    exposedHeaders: ["sessionid", "token",],
+    exposedHeaders: ["sessionid", "token", "resettoken"],
     // allowedHeaders: ["sessionid", "Content-Type", "Authorization", "token"],
 };
