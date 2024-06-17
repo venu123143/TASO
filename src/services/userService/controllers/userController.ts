@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-// import { IUser, UserInstance } from "../models/userModel";
 import userValidations from "../validations/userValidations";
 import { UserDatabase } from "../dbCalls/userDbCalls";
 import RESPONSE from "../../../utils/Response";
@@ -32,11 +31,11 @@ const signUp = async (req: Request, res: Response) => {
         const existingUser = await UserDatabase.findUserExists(accountName, phoneNumber);
         if (existingUser) {
             if (existingUser.phoneNumber === phoneNumber) {
-                RESPONSE.FailureResponse(res, 409, { message: 'Phone number already exists' });
+                RESPONSE.FailureResponse(res, 409, { message: 'Phone number already exists.' });
                 return
             }
             if (existingUser.accountName === accountName) {
-                RESPONSE.FailureResponse(res, 409, { message: 'Account name already taken' });
+                RESPONSE.FailureResponse(res, 409, { message: 'Account name already taken.' });
                 return;
             }
         }
@@ -103,8 +102,13 @@ const verifyOtp = async (req: Request, res: Response) => {
 }
 const login = async (req: Request, res: Response) => {
     const { phoneNumber, password } = req.body;
-
     try {
+        const { error } = await userValidations.LoginValidation.validate(req.body);
+        if (error) {
+            const errorMessage = error?.message?.replace(/["\\]/g, '');
+            RESPONSE.FailureResponse(res, 401, { message: errorMessage });
+            return;
+        }
         // Check if the user exists
         const existingUser = await UserDatabase.findUserByPhone(phoneNumber)
         if (!existingUser) {
@@ -114,14 +118,16 @@ const login = async (req: Request, res: Response) => {
         // Check if the password matches
         const passwordMatch = await bcrypt.compare(password, existingUser.password as string);
         if (!passwordMatch) {
-            return res.status(400).json({ message: 'Invalid password' });
+            RESPONSE.FailureResponse(res, 400, { message: 'Invalid password' });
+            return
         }
         const token = await jwtToken(existingUser)
         res.setHeader('token', token);
         RESPONSE.SuccessResponse(res, 201, { message: 'Login successful', user: existingUser });
     } catch (error: any) {
         console.error('Error logging in:', error);
-        return res.status(500).json({ message: error.message });
+        RESPONSE.FailureResponse(res, 500, { message: 'Internal server error', error: error.message });
+        return
     }
 };
 
